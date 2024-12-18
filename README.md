@@ -1,4 +1,6 @@
-# farm3d
+# Farm3D
+
+![page0](https://github.com/Eryone/farm3d/blob/main/doc/mainpage.png)
 
 
 ### Installation
@@ -27,3 +29,6 @@ sudo systemctl  restart farm3d.service
 #### 3. goto https://eryone.club then add your printer in the webpage
 
 That's all, happy printing!
+
+
+
