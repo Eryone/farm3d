@@ -435,6 +435,7 @@ def on_message(client, userdata, message):
             #status_p = requests.get(url="http://127.0.0.1/printer/objects/query?webhooks&virtual_sdcard&print_stats&extruder=target,temperature&heater_bed=target,temperature")
         elif 'update_eryone_app' in mes_str:
             subprocess.run(["/home/mks/mainsail/all/git_pull.sh", ""]) 
+            subprocess.run(["~/farm3d/update.sh", ""])
         elif 'POST /' in mes_str:
             command = "http://127.0.0.1" + str(name).replace("POST ", "").replace("\n","")
             requests.post(url=command)
