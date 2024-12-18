@@ -1,7 +1,7 @@
 #!/bin/bash
 pip3 install websockets
-pip3 install opencv-python
-pip3 install qrcode[pil]
+#pip3 install opencv-python
+#pip3 install qrcode[pil]
 pip3 install paho-mqtt
 pip3 install requests
 pip3 install ConfigParser

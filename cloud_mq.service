@@ -1,0 +1,16 @@
+[Unit]
+Description=cloud_mq
+After=moonraker.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+#User=mks
+WorkingDirectory=~/farm3d/
+#Environment=""
+ExecStart="~/farm3d/run.sh"
+
+[Install]
+WantedBy=multi-user.target
