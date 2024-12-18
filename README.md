@@ -9,7 +9,7 @@
 cd ~
 git clone https://github.com/Eryone/farm3d.git
 ```
-#### 2. install the software as a service
+#### 2. Install the software as a service
 
 modify the  the `User=` `WorkingDirectory=` `ExecStart=` to your actuall path in the file farm3d.service.
 ```
