@@ -24,6 +24,6 @@ sudo systemctl  restart farm3d.service
 
 ```
 
-#### 3. goto https://eryone.club add your printer in the webpage
+#### 3. goto https://eryone.club then add your printer in the webpage
 
 That's all, happy printing!
