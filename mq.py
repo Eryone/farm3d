@@ -65,7 +65,7 @@ folders = {'config':'','gcodes':'','timelapse':'','logs':''}
 def get_path(folders):
     home_path=os.path.expanduser('~')
     files=requests.get(url="http://127.0.0.1/server/files/roots")
-    if "result" in files:
+    if "result" in files.json():
     #try:
         files=requests.get(url="http://127.0.0.1/server/files/roots")
         if files.json()["result"] is not None:
@@ -538,40 +538,44 @@ while True:
     else:
         time.sleep(3)
         
-    status_p = requests.get(url="http://127.0.0.1/printer/objects/query?webhooks&virtual_sdcard&print_stats&extruder=target,temperature&heater_bed=target,temperature")
-    q_status_p = requests.get(url="http://127.0.0.1/server/job_queue/status")
+    status_p = requests.get(url="http://192.168.2.46/printer/objects/query?webhooks&virtual_sdcard&print_stats&extruder=target,temperature&heater_bed=target,temperature")
     
-    value_json = status_p.json()["result"]
-    value_json["queued_jobs"] = q_status_p.json()["result"]["queued_jobs"]
-    value_json["console_log"] =  ''
-    if notify_flag == 1:
-        notify_flag =0
-        value_json["console_log"] =  all_notify
-        
-    ###download process
-    if down_size == total_size:
-        value_json["queue_state"] = "" #q_status_p.json()["result"]["queue_state"]
-    else :
-        progress = int(down_size*100/total_size)
-        value_json["queue_state"] = "  Downloading "+name_down_file+"("+str(progress)+"%)"
-        print("tot_size:"+value_json["queue_state"])
+    
+    if "result" in status_p.json():
+        value_json = status_p.json()["result"]
+        q_status_p = requests.get(url="http://127.0.0.1/server/job_queue/status")
+        if "result" in q_status_p.json():
+            value_json["queued_jobs"] = q_status_p.json()["result"]["queued_jobs"]
+        value_json["console_log"] =  ''
+        if notify_flag == 1:
+            notify_flag =0
+            value_json["console_log"] =  all_notify
+            
+        ###download process
+        if down_size == total_size:
+            value_json["queue_state"] = "" #q_status_p.json()["result"]["queue_state"]
+        else :
+            progress = int(down_size*100/total_size)
+            value_json["queue_state"] = "  Downloading "+name_down_file+"("+str(progress)+"%)"
+            print("tot_size:"+value_json["queue_state"])
 
-    ####
-    if update_gcode_list == 1:
-        q_list_file = requests.get(url="http://127.0.0.1/server/files/list?root=gcodes")
-        if "result" in q_list_file:
-            value_json["gcodes_list"] = q_list_file.json()["result"]
-        q_list_file = requests.get(url="http://127.0.0.1/server/history/list")
-        if "result" in q_list_file:
-            value_json["history_list"] = q_list_file.json()["result"]["jobs"]
-        q_list_file = requests.get(url="http://127.0.0.1/server/files/list?root=timelapse")
-        if "result" in q_list_file:
-            value_json["timelapse_list"] = q_list_file.json()["result"]
-        value_json["console_log"] =  all_notify
-        update_gcode_list = 0
+        ####
+        if update_gcode_list == 1:
+            q_list_file = requests.get(url="http://127.0.0.1/server/files/list?root=gcodes")
+            if "result" in q_list_file.json():
+                value_json["gcodes_list"] = q_list_file.json()["result"]
+            q_list_file = requests.get(url="http://127.0.0.1/server/history/list")
+            if "result" in q_list_file.json():
+                value_json["history_list"] = q_list_file.json()["result"]["jobs"]
+            q_list_file = requests.get(url="http://127.0.0.1/server/files/list?root=timelapse")
+            if "result" in q_list_file.json():
+                value_json["timelapse_list"] = q_list_file.json()["result"]
+            value_json["console_log"] =  all_notify
+            update_gcode_list = 0
+            
+        #print(value_json)
         
-    #print(value_json)
-    C_publish(client,topic + "printer_status/temperature/tool0/actual", value_json)
+        C_publish(client,topic + "printer_status/temperature/tool0/actual", value_json)
   
 
     if (time.time() - time_old)>30 and (wakeup==1) :
