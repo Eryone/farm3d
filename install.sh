@@ -1,4 +1,11 @@
 #!/bin/bash
+
+## replace to local home dir
+path=$(echo ${HOME} | sed 's/\//\\\//g')
+sed -i 's/~/'"$path"'/g'  ./farm3d.service
+#echo $path
+
+
 pip3 install websockets
 #pip3 install opencv-python
 #pip3 install qrcode[pil]
