@@ -27,8 +27,6 @@ import datetime
 from websockets.sync.client import connect
 from datetime import datetime
 
-
-
 from minio import Minio
 import urllib3
 from urllib.parse import urlparse
@@ -61,6 +59,50 @@ isOpen = (cfgfile.get("MQTT-Config", "isOpen"))
 
 ipmac = ni.ifaddresses('eth0')[ni.AF_LINK][0]["addr"]
 ipmac = ipmac.translate({ord(':'): None})
+
+
+folders = {'config':'','gcodes':'','timelapse':'','logs':''}
+def get_path(folders):
+    home_path=os.path.expanduser('~')
+    try:
+        files=requests.get(url="http://127.0.0.1/server/files/roots")
+        if files.json()["result"] is not None:
+            for folder in files.json()["result"]:
+                if folder["name"] == 'config':
+                    folders['config'] = folder["path"]+'/'
+                elif folder["name"] == 'gcodes':
+                    folders['gcodes'] = folder["path"] +'/'  
+                elif folder["name"] == 'timelapse':
+                    folders['timelapse'] = folder["path"]+'/'   
+                elif folder["name"] == 'logs':
+                    folders['logs'] = folder["path"] +'/'     
+    except Exception as e:
+        pass                
+    if len(folders['gcodes']) == 0:
+        result=subprocess.run(["ps", "-ef"], check=True, text=True, capture_output=True)
+        result=str(result).split(" ")
+        for c_path in result:
+            if '/printer.cfg' in c_path:
+                folders['config'] =  os.path.dirname(c_path) + '/'
+                result_0=subprocess.run(["cat", c_path], check=True, text=True, capture_output=True)
+                result_0 = str(result_0).replace(' ','').split("[")
+                for result_1 in result_0:
+                    if result_1.find('virtual_sdcard]') == 0:
+                        folders['gcodes'] = result_1.split('\\npath:')[1].split('\\n')[0].replace("~",home_path)+'/'
+                         
+                        
+            elif '/klippy.log' in c_path:
+                folders['logs'] =  os.path.dirname(c_path) + '/'     
+        try:        
+            cof=requests.get(url="http://127.0.0.1/server/config")
+            folders['timelapse'] = cof.json()["result"]["config"]["timelapse"]["output_path"].replace("~",home_path) + '/'
+        except Exception as e:
+            pass  
+    #folders['logs']+='/'       
+    print(folders)     
+         
+get_path(folders)    
+
 
 secure = True
 ok_http_client=urllib3.PoolManager(
@@ -110,19 +152,7 @@ total_size = 0
 name_down_file =''
 update_gcode_list = 0
 notify_flag = 1
-folders = {'config':'','gcodes':'','timelapse':'','logs':''}
 
-files=requests.get(url="http://127.0.0.1/server/files/roots")
-for folder in files.json()["result"]:
-    if folder["name"] == 'config':
-        folders['config'] = folder["path"]+'/'
-    elif folder["name"] == 'gcodes':
-        folders['gcodes'] = folder["path"] +'/'  
-    elif folder["name"] == 'timelapse':
-        folders['timelapse'] = folder["path"]+'/'   
-    elif folder["name"] == 'logs':
-        folders['logs'] = folder["path"] +'/'      
-print(folders)
 
 def websocket_thread(arg1,arg2):
     global all_notify
@@ -296,6 +326,7 @@ def Image_publish(client,topics,url,format,type):
 def Image_publish_latest_print_file():
     global update_gcode_list
     update_gcode_list = 1
+    
     #status_p = requests.get(url="http://127.0.0.1/printer/objects/query?webhooks&virtual_sdcard&print_stats&extruder=target,temperature&heater_bed=target,temperature")
     statues_file = str(status_p.json()["result"]["status"]["print_stats"]["filename"])
     #print(statues_file)
