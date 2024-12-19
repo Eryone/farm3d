@@ -14,12 +14,7 @@ chmod 777 ~/farm3d/*
 ```
 #### 2. Install the software as a service
 
-modify the  the `User=` `WorkingDirectory=` `ExecStart=` to your actuall path in the file farm3d.service.
-```
-nano ~/farm3d/farm3d.service
-```
 
-Install third library
 ```
 cd ~/farm3d/
 ./install.sh
