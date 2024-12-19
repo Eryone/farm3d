@@ -22,7 +22,7 @@ nano ~/farm3d/farm3d.service
 Install third library
 ```
 cd ~/farm3d/
-./run.sh
+./install.sh
 ```
 
 
