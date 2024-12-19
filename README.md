@@ -12,16 +12,13 @@ cd ~
 git clone https://github.com/Eryone/farm3d.git
 chmod 777 ~/farm3d/*
 ```
-#### 2. Install the software as a service
-
-
+#### 2. Install the required software
 ```
 cd ~/farm3d/
 ./install.sh
 ```
 
-
-enable the service and reboot your printer.
+#### 3. Enable it auto start after printer boot.
 ```
 sudo cp ~/farm3d/farm3d.service    /etc/systemd/system/
 sudo systemctl  daemon-reload
@@ -30,7 +27,7 @@ sudo systemctl  restart farm3d.service
 
 ```
 
-#### 3. goto https://eryone.club then add your printer in the webpage
+#### 4. goto https://eryone.club then add your printer in the webpage
 
 That's all, happy printing!
 
