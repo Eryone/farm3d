@@ -18,6 +18,14 @@ modify the  the `User=` `WorkingDirectory=` `ExecStart=` to your actuall path in
 ```
 nano ~/farm3d/farm3d.service
 ```
+
+Install third library
+```
+cd ~/farm3d/
+./run.sh
+```
+
+
 enable the service and reboot your printer.
 ```
 sudo cp ~/farm3d/farm3d.service    /etc/systemd/system/
