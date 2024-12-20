@@ -22,6 +22,7 @@ import subprocess
 import json
 import requests
 import eventlet
+import logging
 
 import netifaces as ni
 import asyncio
@@ -35,12 +36,6 @@ from urllib.parse import urlparse
 import certifi
 from minio.commonconfig import REPLACE, CopySource
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-
-
-
-
-
 
 home_path = os.path.dirname(os.path.realpath("~"))
 #printer_name = "3-8"
@@ -59,8 +54,17 @@ refresh_time = (cfgfile.get("MQTT-Config", "refresh_time"))
 port = (cfgfile.get("Broker", "Port"))
 isOpen = (cfgfile.get("MQTT-Config", "isOpen"))
 
-ipmac = ni.ifaddresses('eth0')[ni.AF_LINK][0]["addr"]
-ipmac = ipmac.translate({ord(':'): None})
+ipmac0 = ni.ifaddresses('eth0')[ni.AF_LINK][0]["addr"]
+ipmac = ipmac0.translate({ord(':'): None})
+printer_host = str(os.popen('cat /etc/hostname').read())
+if len(printer_host)<=0:
+    printer_host = str(os.uname()[1])
+
+printer_name = (printer_host+":"+ipmac).replace("\n", "")
+#printer_name = (str(os.popen('cat /etc/hostname').read())+":"+ipmac).replace("\n", "")
+
+print("printer_name:"+printer_name )
+
 
 
 
@@ -104,9 +108,25 @@ def get_path(folders):
         except Exception as e:
             pass  
     #folders['logs']+='/'       
-    print(folders)     
+    print(folders) 
+   # 
          
 get_path(folders)    
+logging.basicConfig(handlers=[logging.FileHandler(filename=folders['logs']+"farm3d.log", 
+                                                 encoding='utf-8', mode='a+')],
+                    format="%(asctime)s  %(message)s", 
+                    datefmt="%F %A %T", 
+                    level=logging.INFO)
+
+
+logging.info(' ')
+logging.info('Staring Farm3D ...... ')
+logging.info(' ')
+logging.info('Name:'+printer_host)
+logging.info('MAC address:'+ipmac0)
+logging.info(' ')
+logging.info(folders)
+
 
 
 secure = True
@@ -127,7 +147,7 @@ minioClient = Minio(broker+":9000",
                     http_client=ok_http_client,
                     secure=secure)
 
-print(minioClient.list_buckets())
+#print(minioClient.list_buckets())
 
 #minioClient.fget_object("usebucket", "y_PLA_38m36s.gcode", "3DBenchy_PLA_38m36s.gcode")
 
@@ -138,7 +158,7 @@ print(minioClient.list_buckets())
 
 
 
-printer_name = (str(os.popen('cat /etc/hostname').read())+":"+ipmac).replace("\n", "")
+
 
 #client_id = printer_name
 image_timer = 60.0
@@ -199,12 +219,11 @@ def upload_file(remotefile: str,local_path: str,file_name:str):
     elif '/logs' in local_path:
         local_path = folders['logs']
         
-    print(local_path+file_name)
-    print(remotefile)
+    logging.info('upload_file  remotefile:'+remotefile+',localfile:'+local_path+file_name)
     result = minioClient.fput_object(
         "users-bucket",remotefile, local_path+file_name
         )
-    print(
+    logging.info(
             "created {0} object; etag: {1}, version-id: {2}".format(
                 result.object_name, result.etag, result.version_id,
             ),
@@ -216,12 +235,12 @@ def download(url: str, fname: str):
     global name_down_file
 
     url = url.replace("users-bucket/", "")
-    print("download url..."+url)
+    logging.info("download url..."+url)
     url = url.split(":9000/"); 
    # minioClient.fget_object("users-bucket", url[1], fname)
     object_data = minioClient.get_object('users-bucket', url[1])
     total_size = int(object_data.headers.get('content-length', 0))
-    print(str(total_size))
+    logging.info(str(total_size))
     with open(fname, 'wb') as file_data:
         for data in object_data:
             size = file_data.write(data)
@@ -235,7 +254,7 @@ def download(url: str, fname: str):
     
     resp = minioClient.get_object('users-bucket', url[1]) #requests.get(url, stream=True)
     total_size = int(resp.headers.get('content-length', 0))
-    print(str(total_size))
+    logging.info(str(total_size))
     # Can also replace 'file' with a io.BytesIO object
     with open(fname, 'wb') as file, tqdm(
         desc=fname,
@@ -249,23 +268,10 @@ def download(url: str, fname: str):
             size = file.write(data)
             down_size +=size
             if down_size == total_size:
-                print("downlaod finished:"+name_down_file)
+                logging.info("downlaod finished:"+name_down_file)
                 requests.post(url="http://127.0.0.1/server/job_queue/job?filenames="+name_down_file)
            # bar.update(size)
 
-
-
-
-#download("http://47.121.215.229:9000/werf/3DBenchy_PLA_21m56s.gcode",'./test.gcode')
-
-#while True:
-#    time.sleep(1)
-#    print("tot_size:"+str(int(down_size*100/total_size))+"%")
-    
-
-#printer_name = (cfgfile.get("MQTT-Config", "printer_name"))
-
-print("printer_name:"+printer_name)
 
 
 def get_thumbs_path(g_file):
@@ -274,10 +280,10 @@ def get_thumbs_path(g_file):
    # print(path_s["result"]["thumbnails"][0]["size"])
   #  print(path_s["result"]["thumbnails"][1]["size"])
     if path_s["result"]["thumbnails"][0]["size"] > path_s["result"]["thumbnails"][1]["size"]:
-        print(path_s["result"]["thumbnails"][0]["relative_path"])
+        logging.info(path_s["result"]["thumbnails"][0]["relative_path"])
         return path_s["result"]["thumbnails"][0]["relative_path"]
     else:
-        print(path_s["result"]["thumbnails"][1]["relative_path"])
+        logging.info(path_s["result"]["thumbnails"][1]["relative_path"])
         return path_s["result"]["thumbnails"][1]["relative_path"]
 
 
@@ -329,8 +335,8 @@ def Image_publish(client,topics,url,format,type):
         b.extend(imgByteArr)
         client.publish(topics+printer_name, b, 0)
         
-        print("Image_ topics:"+topics+" url:"+ url)
-    print('get image timeout')
+        logging.info("Image_ topics:"+topics+" url:"+ url)
+    logging.info('get image timeout')
 
     
 def Image_publish_latest_print_file():
@@ -374,15 +380,15 @@ def image_update(type):
 def on_connect(client,userdata,flags,rc,mq):
 
     if rc == 0:
-        print("connected with result code:" + str(rc))
+        logging.info("connected with result code:" + str(rc))
         client.subscribe(topic + printer_name +"/control/run_gcode")
     else:
         # 如果链接断开，尝试重新连接
-        print("Failed to reconnect to MQTT broker")
+        logging.info("Failed to reconnect to MQTT broker")
         
 def on_disconnect(client,userdata,rc,mq1,mq2):
     if rc != 0:
-        print("disconnented from MQTT :"+str(rc))
+        logging.info("disconnented from MQTT :"+str(rc))
         raise SystemExit
     	
 def is_file_download(path,name):
@@ -391,9 +397,9 @@ def is_file_download(path,name):
         file_path = os.path.join(path, file)
 
         if os.path.isfile(file_path):
-            print(file)
+            logging.info(file)
             if file == name:
-                print("the file is aready there,no need to downlaod")
+                logging.info("the file is aready there,no need to downlaod")
                 return 1
             
 
@@ -410,7 +416,7 @@ def on_message(client, userdata, message):
     global total_size
     global name_down_file
     
-    print(f"{message.topic},{json.loads(str(message.payload.decode('utf-8')))['name']}")
+    logging.info(f"{message.topic},{json.loads(str(message.payload.decode('utf-8')))['name']}")
 
     wakeup = 1
     time_old = time.time()
@@ -522,8 +528,8 @@ client.username_pw_set(username, password)
 
 
 if int(port) > 0 :
-    print(broker)
-    print(port)
+    logging.info(broker)
+    logging.info(port)
     client.connect(broker, int(port))
 else :
     client.connect(broker)
@@ -547,8 +553,6 @@ while True:
         time.sleep(3)
         
     status_p = requests.get(url="http://127.0.0.1/printer/objects/query?webhooks&virtual_sdcard&print_stats&extruder=target,temperature&heater_bed=target,temperature")
-    
-    
     if "result" in status_p.json():
         value_json = status_p.json()["result"]
         q_status_p = requests.get(url="http://127.0.0.1/server/job_queue/status")
@@ -565,7 +569,7 @@ while True:
         else :
             progress = int(down_size*100/total_size)
             value_json["queue_state"] = "  Downloading "+name_down_file+"("+str(progress)+"%)"
-            print("tot_size:"+value_json["queue_state"])
+            logging.info("tot_size:"+value_json["queue_state"])
 
         ####
         if update_gcode_list == 1:
