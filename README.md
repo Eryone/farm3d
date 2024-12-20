@@ -10,11 +10,11 @@
 ```
 cd ~
 git clone https://github.com/Eryone/farm3d.git
-chmod 777 ~/farm3d/*
 ```
 #### 2. Install the required software
 ```
 cd ~/farm3d/
+chmod 777 ~/farm3d/*
 ./install.sh
 ```
 
@@ -28,6 +28,14 @@ sudo systemctl  restart farm3d.service
 ```
 
 #### 4. goto https://eryone.club then add your printer in the webpage
+
+How to add new Printer: 
+
+input your printer name and the address of the ethernet mac or scan the qrcode (only for the printer x400)
+
+video: https://youtube.com/shorts/0iYtUhFUCZc
+
+Review video: https://youtu.be/-Sf5vfT637g
 
 That's all, happy printing!
 
