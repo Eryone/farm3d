@@ -538,7 +538,7 @@ while True:
     else:
         time.sleep(3)
         
-    status_p = requests.get(url="http://192.168.2.46/printer/objects/query?webhooks&virtual_sdcard&print_stats&extruder=target,temperature&heater_bed=target,temperature")
+    status_p = requests.get(url="http://127.0.0.1/printer/objects/query?webhooks&virtual_sdcard&print_stats&extruder=target,temperature&heater_bed=target,temperature")
     
     
     if "result" in status_p.json():
