@@ -56,7 +56,7 @@ isOpen = (cfgfile.get("MQTT-Config", "isOpen"))
 
 ipmac0 = ni.ifaddresses('eth0')[ni.AF_LINK][0]["addr"]
 ipmac = ipmac0.translate({ord(':'): None})
-printer_host = str(os.popen('cat /etc/hostname').read())
+printer_host = str(os.popen('cat /etc/hostname').read()).replace("\n", "")
 if len(printer_host)<=0:
     printer_host = str(os.uname()[1])
 
