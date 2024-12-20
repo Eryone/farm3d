@@ -20,6 +20,8 @@ from tqdm import tqdm
 import socket
 import subprocess
 import json
+import requests
+import eventlet
 
 import netifaces as ni
 import asyncio
@@ -59,6 +61,7 @@ isOpen = (cfgfile.get("MQTT-Config", "isOpen"))
 
 ipmac = ni.ifaddresses('eth0')[ni.AF_LINK][0]["addr"]
 ipmac = ipmac.translate({ord(':'): None})
+
 
 
 folders = {'config':'','gcodes':'','timelapse':'','logs':''}
@@ -306,25 +309,30 @@ def C_publish(client,topics,json_s):
 
 def Image_publish(client,topics,url,format,type):
     #print(url)
-    r_data = requests.get(url, stream=True)
+   # r_data = requests.get(url, stream=True)
+    eventlet.monkey_patch()
+    with eventlet.Timeout(2,False):
+        r_data = requests.get(url, stream=True)
     #print(len(str(r_data.content)))
-    if len(str(r_data.content)) <1024:
-        return
-    camera = Image.open(requests.get(url, stream=True).raw)
-    ImageFile.LOAD_TRUNCATED_IMAGES = True
+        if len(str(r_data.content)) <1024:
+            return
+        camera = Image.open(requests.get(url, stream=True).raw)
+        ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-    imgByteArr = io.BytesIO()
-    camera.save(imgByteArr, format)
-    imgByteArr = imgByteArr.getvalue()
-    #print(io.BytesIO(camera))
+        imgByteArr = io.BytesIO()
+        camera.save(imgByteArr, format)
+        imgByteArr = imgByteArr.getvalue()
+        #print(io.BytesIO(camera))
 
-    b = bytearray()
-    b.extend(map(ord, printer_name+';'+type+';'))
-    b.extend(imgByteArr)
-    client.publish(topics+printer_name, b, 0)
+        b = bytearray()
+        b.extend(map(ord, printer_name+';'+type+';'))
+        b.extend(imgByteArr)
+        client.publish(topics+printer_name, b, 0)
+        
+        print("Image_ topics:"+topics+" url:"+ url)
+    print('get image timeout')
+
     
-    print("Image_ topics:"+topics+" url:"+ url)
-
 def Image_publish_latest_print_file():
     global update_gcode_list
     update_gcode_list = 1
@@ -342,16 +350,15 @@ def Image_publish_latest_print_file():
     latest_time = 0.0
     #print(history["result"]["value"])
     latest_id = ""
-    try:
-        for id in history["result"]["value"]:
-            time_d= history["result"]["value"][id]["start_time"]
-            if latest_time < time_d:
-                latest_time = time_d
-                latest_id = id
+    for id in history["result"]["value"]:
+        time_d= history["result"]["value"][id]["start_time"]
+        if latest_time < time_d:
+            latest_time = time_d
+            latest_id = id
+    if latest_id != "":        
         history_file = history["result"]["value"][latest_id]["filename"]
         Image_publish(client,topic + "printer_jpg","http://127.0.0.1/server/files/gcodes/"+get_thumbs_path(history_file),'PNG','thu')        
-    except KeyError:
-        return 
+
    # print(history["result"]["value"][latest_id]["start_time"])
    # print(history["result"]["value"][latest_id]["filename"])
     
@@ -376,6 +383,7 @@ def on_connect(client,userdata,flags,rc,mq):
 def on_disconnect(client,userdata,rc,mq1,mq2):
     if rc != 0:
         print("disconnented from MQTT :"+str(rc))
+        raise SystemExit
     	
 def is_file_download(path,name):
     files = os.listdir(path)
@@ -577,7 +585,7 @@ while True:
         
         C_publish(client,topic + "printer_status/temperature/tool0/actual", value_json)
   
-
+    
     if (time.time() - time_old)>30 and (wakeup==1) :
         wakeup = 0
         print("go to sleep..")

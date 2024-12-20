@@ -7,10 +7,10 @@ StartLimitIntervalSec=0
 Type=simple
 Restart=always
 RestartSec=1
-User=mks
-WorkingDirectory=/home/mks/farm3d/
+User=pi
+WorkingDirectory=~/farm3d/
 #Environment=""
-ExecStart="/home/mks/farm3d/run.sh"
+ExecStart="~/farm3d/run.sh"
 
 [Install]
 WantedBy=multi-user.target

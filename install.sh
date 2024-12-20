@@ -5,7 +5,7 @@ path=$(echo ${HOME} | sed 's/\//\\\//g')
 sed -i 's/~/'"$path"'/g'  ./farm3d.service
 #echo $path
 
-sed -i 's/User=mks/'User="$USER"'/g' ./farm3d.service
+sed -i 's/User=pi/'User="$USER"'/g' ./farm3d.service
 
 pip3 install websockets
 #pip3 install opencv-python
@@ -18,6 +18,7 @@ pip3 install Pillow
 pip3 install tqdm
 pip3 install netifaces
 pip3 install minio
+pip3 install eventlet
 
 exit
 
