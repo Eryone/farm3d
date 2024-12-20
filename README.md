@@ -29,8 +29,13 @@ sudo systemctl  restart farm3d.service
 
 #### 4. goto https://eryone.club then add your printer in the webpage
 
-How to add new Printer:  https://youtube.com/shorts/0iYtUhFUCZc
-Review: https://youtu.be/-Sf5vfT637g
+How to add new Printer: 
+
+input your printer name and the address of the ethernet mac or scan the qrcode (only for the printer x400)
+
+video: https://youtube.com/shorts/0iYtUhFUCZc
+
+Review video: https://youtu.be/-Sf5vfT637g
 
 That's all, happy printing!
 
