@@ -10,11 +10,11 @@
 ```
 cd ~
 git clone https://github.com/Eryone/farm3d.git
-chmod 777 ~/farm3d/*
 ```
 #### 2. Install the required software
 ```
 cd ~/farm3d/
+chmod 777 ~/farm3d/*
 ./install.sh
 ```
 
