@@ -3,8 +3,8 @@
 ![page0](https://github.com/Eryone/farm3d/blob/main/doc/mainpage.png)
 
 
-### Installation
-
+### Installation 
+This software is installed by default on the printer X400
 
 #### 1. Download the software
 ```
