@@ -6,6 +6,7 @@
 ### Installation 
 This software is installed by default on the printer X400
 
+For other klipper printers, you can install the software by following the steps below.
 #### 1. Download the software
 ```
 cd ~
@@ -31,9 +32,9 @@ sudo systemctl  restart farm3d.service
 
 How to add new Printer: 
 
-input your printer name and the address of the ethernet mac or scan the qrcode (only for the printer x400)
+input your printer name and the address of the ethernet mac or scan the qrcode
 
-video: https://youtube.com/shorts/0iYtUhFUCZc
+video of adding printers: https://youtube.com/shorts/0iYtUhFUCZc
 
 Review video: https://youtu.be/-Sf5vfT637g
 
